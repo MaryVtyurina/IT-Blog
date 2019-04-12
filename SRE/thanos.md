@@ -16,9 +16,9 @@ Prometheus can scale, we've seen deployments in the wild where some instances ca
 
 Thanos, an Open Source project started by Improbable-Eng, a game engine company, was love at first sight. Distributed, highly scalable, and uses object storage for unlimited storage retention. It also comes with downsampling and configurable retention. It checked nearly all our boxes and the community was also really growing and eager to accept contributions. 
 
-After a few tests we confirmed the choice and began to deploy Thanos in our datacenters. As we were waiting for our Kubernetes clusters to be built by the Container team, we initially deployed Thanos on VMs and a few bare metal servers. Thanksfully, on the storage side, we already have Ceph clusters deployed, it was just a matter of adding capacity to it.
+After a few tests we confirmed the choice and began to deploy Thanos in our datacenters. Using our on-premise Kubernetes clusters built by our Container team, we were able to deploy a production-ready version of Thanos in a few days. On the storage side, we already have Ceph clusters deployed, it was just a matter of adding capacity to it.
 
-But before deploying all the components needed for collecting metrics, we need metrics to collect!
+Now that we have a platform that is capable of collecting metrics, we need to expose them!
 
 ## 80/20 or Pareto's Law
 
@@ -68,6 +68,13 @@ cds_order_cart_total{site="Android"} 4000
 
 A discussion we often have is, is this a business metric or a tech one ? Is it needed ? Is it helpful ? Does it belong to the metrics platform or the BI platform ?
 
-One rule we have is, if it helps debug production at 3am when paged, then it's useful and should be implemented.
+One rule we have is, if it helps debug production at 3am when paged, then it's useful and should be implemented. Adding the new libraries to all our applications, new and old, will take some time and we're still accompanying users for this journey.
 
 ## Deploying in Kubernetes
+
+Deploying a single application in Kubernetes is easy, write some YAML, a ConfigMap, a Deployment and off you go. For a complex monitoring solution it is not as simple. There's a few community supported Helm charts but we went another way. We already deploy most of our infrastructure with Ansible, we thought why couldn't we use the same tool we're proficient with, to deploy this new system ?
+
+Thanksfully, Ansible provides a `k8s` module that can directly talk to Kubernetes' API. After a few roles and playbooks and more YAML, we were able to test our deployment with [Molecule](https://molecule.readthedocs.io/en/stable/) and [Kubernetes In Docker](https://kind.sigs.k8s.io/) project. This allow easy testing of new features, upgrades and configurations changes directly in our local environment.
+
+Here's our architecture:
+
